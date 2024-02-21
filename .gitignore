@@ -1,0 +1,28 @@
+# Dépendances
+node_modules/
+jspm_packages/
+
+# Fichiers de logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+
+# Fichiers de configuration de l'environnement
+.env
+
+.env.local
+
+# Fichiers de cache du système d'exploitation
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Fichiers de build et de dist
+/dist
+/tmp
+/out

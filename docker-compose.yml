@@ -1,0 +1,21 @@
+version: '3'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - db # Si votre application nécessite une base de données
+  db: # Exemple de service de base de données
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: nom_de_votre_base
+      POSTGRES_USER: utilisateur
+      POSTGRES_PASSWORD: mot_de_passe
+    volumes:
+      - db-data:/var/lib/postgresql/data
+volumes:
+  db-data:
