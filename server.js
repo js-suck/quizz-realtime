@@ -10,8 +10,17 @@ app.get("/", (req, res) => {
   res.send("<h1>Mon Quiz en temps réel</h1>");
 });
 
+app.get("/chat", (req, res) => {
+  res.sendFile(__dirname + "/chat.html");
+});
+
 io.on("connection", (socket) => {
   console.log("Un utilisateur est connecté");
+
+  // Gérer l'envoi de messages dans le chat
+  socket.on("chat message", (msg) => {
+    io.emit("chat message", msg);
+  });
 
   socket.on("disconnect", () => {
     console.log("Un utilisateur s'est déconnecté");

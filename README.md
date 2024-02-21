@@ -5,7 +5,7 @@ Ce projet est un quiz interactif en temps réel utilisant Node.js et Socket.IO. 
 ## Contributeur
 
 - Laila CHARAOUI 5IW2 []
-- Antoine CHABERNAUD 5IW2 [Dockerisation, Serveur]
+- Antoine CHABERNAUD 5IW2 [Dockerisation, Serveur, Chat]
 - Lucas RAMIS 5WI2 []
 - Vivian RUHLMANN 5IW2 []
 
