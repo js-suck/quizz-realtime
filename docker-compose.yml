@@ -1,21 +1,23 @@
-version: '3'
+version: '3.8'
 services:
-  app:
-    build: .
+  server:
+    build: 
+      context: ./server
     ports:
-      - "3000:3000"
+      - "3001:3001"
     volumes:
-      - .:/usr/src/app
+      - ./server:/usr/src/app
       - /usr/src/app/node_modules
-    depends_on:
-      - db # Si votre application nécessite une base de données
-  db: # Exemple de service de base de données
-    image: postgres:latest
     environment:
-      POSTGRES_DB: nom_de_votre_base
-      POSTGRES_USER: utilisateur
-      POSTGRES_PASSWORD: mot_de_passe
+      - NODE_ENV=development
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
     volumes:
-      - db-data:/var/lib/postgresql/data
-volumes:
-  db-data:
+      - ./client:/usr/app # Montez le dossier client dans le conteneur
+      - /usr/app/node_modules # Assurez-vous de ne pas écraser node_modules
+    environment:
+      - NODE_ENV=development
