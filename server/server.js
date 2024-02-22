@@ -2,6 +2,8 @@ const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
 const cors = require("cors");
+const {database, initDb} = require('./db');
+const { Client } = require('pg');
 
 const app = express();
 
@@ -12,6 +14,21 @@ const io = socketIo(server, {
     origin: "*",
   },
 });
+
+const pgClient = new Client({
+  connectionString: 'postgres://root:password@localhost:5432/app'
+});
+
+pgClient.connect()
+    .then(() => {
+      console.log('Connecté à PostgreSQL avec succès');
+        initDb().then(r =>
+          console.log("Database synchronised")
+        )
+    })
+    .catch((error) => {
+      console.error('Erreur lors de la connexion à PostgreSQL :', error);
+    });
 
 io.on("connection", (socket) => {
   console.log("Nouvel utilisateur connecté");
