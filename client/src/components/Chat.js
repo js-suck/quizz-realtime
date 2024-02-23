@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import io from "socket.io-client";
 import "../assets/chat.css";
+import {socket} from "../socket";
 
-const socket = io("http://localhost:3001"); // Assurez-vous que l'adresse correspond à celle de votre serveur
 
 const Chat = () => {
   const [message, setMessage] = useState("");
