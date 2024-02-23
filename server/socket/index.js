@@ -59,6 +59,7 @@ class RealTimeQuizzSocket {
                 let room= null;
 
                 if (this.rooms?.[category] !== undefined) {
+                    console.log("category already exist", this.rooms[category]);
                     // Search if a room with the same category exists and has only one user
                     this.rooms[category].forEach((r) => {
                         if (r.users.length === 1 && !r.users.find(u => u.id === user.id)) {

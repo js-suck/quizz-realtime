@@ -17,7 +17,7 @@ function App() {
           <Route path="/choose-category" element={<ChooseCategory />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/waiting-room/:category" element={<WaitingRoom />} />
-          <Route path="/quizz-game/:roomId" element={<QuizzGame />} />
+          <Route path="/quizz-game/:category/:roomId" element={<QuizzGame />} />
         </Routes>
       </div>
     </Router>
