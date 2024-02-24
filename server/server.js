@@ -5,6 +5,8 @@ const cors = require("cors");
 const {database, initDb} = require('./db');
 const { Client } = require('pg');
 const RealTimeQuizzSocket = require("./socket");
+const categoryRouter = require('./router/categoryRouter');
+const questionRouter = require('./router/questionRouter');
 
 const app = express();
 
@@ -31,6 +33,9 @@ pgClient.connect()
 
 
 const PORT = process.env.PORT || 3001;
+
+app.use('/api/category',categoryRouter);
+app.use('/api/questions',questionRouter);
 
 
 

@@ -1,8 +1,10 @@
+const QuestionsService = require('./../services/questionsService');
+
 function roomId() {
     return Math.random().toString(36).substr(2, 9);
 }
 function createRoom(user, category) {
-    const room = { id: roomId(), users: [], category: category };
+    const room = { id: roomId(), users: [], usersAnswered: [], category: category };
     room.users.push(user);
     if (user && room) {
         user.roomId = room.id;
@@ -55,7 +57,8 @@ class RealTimeQuizzSocket {
                 this.connectedUsers.delete(socket.id);
             });
 
-            socket.on('search a room', ({ user, category }) => {
+            socket.on('search a room', async ({ user, category }) => {
+                console.log("search a room", user, category)
                 let room= null;
 
                 if (this.rooms?.[category] !== undefined) {
@@ -93,8 +96,17 @@ class RealTimeQuizzSocket {
                         room.users.push(user);
                         socket.join(room.id);
                         user.category = category;
-                        console.log("\x1b[31m%s\x1b[0m","roomFound");
-                        this.io.to(room.id).emit('roomFound', room);
+                        console.log("\x1b[31m%s\x1b[0m","startQuizzGame");
+                        const questionService = new QuestionsService();
+
+                        const questions = await questionService.findByName(category, {page: 1, itemsPerPage: 5, order: {id: 'ASC'}});
+                        console.log(questions, 'questions', category)
+
+                        this.io.to(room.id).emit('startQuizzGame', {
+                            room,
+                            category,
+                            questions
+                        });
                     } else {
 
                         console.log("\x1b[31m%s\x1b[0m","Wait for other player");
@@ -118,6 +130,54 @@ class RealTimeQuizzSocket {
                     console.log("room not found");
                 }
 
+            });
+
+
+          socket.on('answered', ({ user, questionId, isAnswerValid, answerId }) => {
+            const room = this.findRoomByCategory(user.category, user.roomId);
+
+            if (room) {
+                const userInRoom = room.users.find(u => u.id === user.id);
+
+                if (userInRoom) {
+                    userInRoom.score = isAnswerValid ? userInRoom.score + 1 : userInRoom.score;
+
+                    if (!room.usersAnswered.includes(user.id)) {
+                        room.usersAnswered.push(user.id);
+                    }
+
+                    // send then answer to the other users but not the user who answered
+                    room.users.forEach((u) => {
+                        if (u.id !== user.id) {
+                            this.io.to(u.socketId).emit('update score', { user: userInRoom, room });
+                            this.io.to(u.socketId).emit('opponent answered', { user, questionId, isAnswerValid, answerId });
+                        }
+                    });
+
+                    if (room.usersAnswered.length === room.users.length) {
+                        console.log("All users have answered");
+
+                        // wait 5 seconds before sending the next question
+                        setTimeout(() => {
+                            this.io.to(room.id).emit('next question', room);
+                        }
+                        , 5000);
+                        room.usersAnswered = [];
+                    } else {
+                        console.log("Not all users have answered", room.users);
+                        this.io.to(room.id).emit('update score', { user: userInRoom, room });
+
+
+                    }
+                }
+            }
+        });
+
+              socket.on('quizz ended', ({ roomId }) => {
+             const room = this.rooms.find(r => r.id === roomId);
+                if (room) {
+                    this.io.to(roomId).emit('quizz ended', { room });
+                }
             });
 
             socket.on("update score", ({ user, room, score, category }) => {
