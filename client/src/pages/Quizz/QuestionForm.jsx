@@ -8,18 +8,26 @@ export const QuestionForm = () => {
   ]);
   const apiUrl = getApirUrl();
   const [category, setCategory] = useState("");
-  const [categories, setCategories] = useState([{ id: 1, name: "Science" }]);
+  const [categories, setCategories] = useState([]);
 
-  // Charger les catégories depuis l'API
-//   useEffect(() => {
-//     fetch(`${apiUrl}/category`)
-//       .then((response) => response.json())
-//       .then((data) => setCategories(data))
-//       .catch((error) =>
-//         console.error("Erreur de chargement des catégories", error)
-//       );
-//   }, [apiUrl]);
-
+  useEffect(() => {
+    // Note: l'URL est supposée être /categories pour récupérer toutes les catégories
+    fetch(`${apiUrl}/category`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(
+            "Erreur réseau lors de la récupération des catégories."
+          );
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setCategories(data); // Stocke les catégories récupérées dans l'état
+      })
+      .catch((error) => {
+        console.error("Erreur de chargement des catégories:", error);
+      });
+  }, [apiUrl]); // Dépendance à apiUrl pour recharger si l'URL change
 
   const addAnswer = () => {
     const newAnswer = { id: answers.length, text: "", isCorrect: false };
@@ -44,8 +52,11 @@ export const QuestionForm = () => {
     e.preventDefault();
     const formattedQuestion = {
       label: questionText,
-    
-      categoryId: category, 
+      answers: answers.map((ans) => ({
+        label: ans.text,
+        isCorrect: ans.isCorrect,
+      })),
+      categoryId: category,
     };
 
     try {
