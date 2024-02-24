@@ -85,25 +85,30 @@ class QuestionsService {
 
         const categoryId = category.id;
 
-        const questions = await Question.findAll({
-            attributes: ["id", "label"],
-            include: [
-                {
-                    model: Category,
-                    attributes: ["name", "description", "image_url"],
-                    where: {
-                        id: categoryId
-                    },
-                    as: 'category'
-                },
-            ],
-        });
+const questions = await Question.findAll({
+    attributes: ["id", "label"],
+    include: [
+        {
+            model: Category,
+            attributes: ["name", "description", "image_url"],
+            where: {
+                id: categoryId
+            },
+            as: 'category'
+        },
+        {
+            model: Answer,
+            as: 'answers'
+        }
+    ],
+});
         const transformedArray = questions.map(item => ({
             "id": item.id,
             "label": item.label,
             "name": item.category.name,
             "description": item.category.description,
-            "image_url": item.category.image_url
+            "image_url": item.category.image_url,
+            "answers": item.answers.map(answer => answer.label)
         }));
         return transformedArray;
     }
