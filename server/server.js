@@ -11,6 +11,8 @@ const answerRouter = require("./router/answerRouter");
 
 
 const app = express();
+app.use(express.json()); // Pour parser le corps des requêtes JSON
+
 
 app.use(cors());
 const server = http.createServer(app);

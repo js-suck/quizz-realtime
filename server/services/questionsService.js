@@ -15,6 +15,7 @@ class QuestionsService {
   }
 
   async create(data) {
+    console.log("Data reçue :", data); // Ajoutez ceci pour débugger
     try {
       const { answers, ...questionData } = data; // Extraire les réponses du reste des données
 
