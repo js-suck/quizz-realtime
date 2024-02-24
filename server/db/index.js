@@ -15,7 +15,7 @@ files.forEach((file) => {
 
 
 const initDb = async () => {
-    await connection.sync({ force: true });
+    await connection.sync({ force: false });
     console.log("Database synchronised");
 }
 
@@ -38,6 +38,8 @@ database["Category"].hasMany(database["Question"], {
     foreignKey: "categoryId",
     as: "question",
 });
+
+console.log("database", database)
 
 module.exports = {
     database,
