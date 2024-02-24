@@ -6,6 +6,7 @@ import {WaitingRoom} from "./pages/Quizz/WaitingRoom";
 import {QuizzGame} from "./pages/Quizz/QuizzGame";
 import {QuizProvider} from "./hooks/useQuizzContext";
 import {QuestionForm} from "./pages/Quizz/QuestionForm";
+import "./index.css";
 
 function App() {
   return (
@@ -17,7 +18,7 @@ function App() {
         </header>
         <QuizProvider>
 
-        <Routes>
+          <Routes>
           <Route path="/choose-category" element={<ChooseCategory />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/waiting-room/:category" element={<WaitingRoom />} />

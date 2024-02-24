@@ -71,7 +71,7 @@ export const QuizzGame = () => {
     };
 
     return (
-        <div>
+        <div className={'bg-primary'}>
             <h1>Quizz Game {category}</h1>
             {currentQuestion && (
                 <div>
