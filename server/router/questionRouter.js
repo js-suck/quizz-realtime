@@ -4,6 +4,7 @@ const QuestionService = require('./../services/QuestionsService');
 
 const QuestionController = GenericController(new QuestionService())
 const questionRouter = express.Router();
+questionRouter.post('/', QuestionController.create);
 questionRouter.get('/', QuestionController.getAll);
 questionRouter.get("/:category", QuestionController.getByName);
 questionRouter.get('/:id', QuestionController.getOne);

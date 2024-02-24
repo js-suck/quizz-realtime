@@ -7,6 +7,8 @@ const { Client } = require('pg');
 const RealTimeQuizzSocket = require("./socket");
 const categoryRouter = require('./router/categoryRouter');
 const questionRouter = require('./router/questionRouter');
+const answerRouter = require("./router/answerRouter");
+
 
 const app = express();
 
@@ -36,6 +38,8 @@ const PORT = process.env.PORT || 3001;
 
 app.use('/api/category',categoryRouter);
 app.use('/api/questions',questionRouter);
+app.use('/api/answers', answerRouter); 
+
 
 
 
