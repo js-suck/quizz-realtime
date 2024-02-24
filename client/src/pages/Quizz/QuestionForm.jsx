@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getApirUrl } from "../../helpers/getApirUrl";
 
 export const QuestionForm = () => {
@@ -7,9 +7,19 @@ export const QuestionForm = () => {
     { id: 0, text: "", isCorrect: false },
   ]);
   const apiUrl = getApirUrl();
-  const [category, setCategory] = useState(""); // État pour la catégorie
+  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState([{ id: 1, name: "Science" }]);
 
-  const categories = ["Mathématiques", "Histoire", "Science", "Littérature"];
+  // Charger les catégories depuis l'API
+//   useEffect(() => {
+//     fetch(`${apiUrl}/category`)
+//       .then((response) => response.json())
+//       .then((data) => setCategories(data))
+//       .catch((error) =>
+//         console.error("Erreur de chargement des catégories", error)
+//       );
+//   }, [apiUrl]);
+
 
   const addAnswer = () => {
     const newAnswer = { id: answers.length, text: "", isCorrect: false };
@@ -33,12 +43,9 @@ export const QuestionForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formattedQuestion = {
-      questionText,
-      answers: answers.map((ans) => ({
-        text: ans.text,
-        isCorrect: ans.isCorrect,
-      })),
-      category,
+      label: questionText,
+    
+      categoryId: category, 
     };
 
     try {
@@ -56,9 +63,10 @@ export const QuestionForm = () => {
 
       const responseData = await response.json();
       console.log("Question soumise avec succès:", responseData);
-      // Réinitialiser le formulaire ou gérer la suite ici
-
-        setQuestionText("");
+      // Réinitialiser le formulaire
+      setQuestionText("");
+      setAnswers([{ id: 0, text: "", isCorrect: false }]);
+      setCategory("");
     } catch (error) {
       console.error("Erreur lors de la soumission de la question:", error);
     }
@@ -94,9 +102,9 @@ export const QuestionForm = () => {
       </button>
       <select value={category} onChange={(e) => setCategory(e.target.value)}>
         <option value="">Sélectionnez une catégorie</option>
-        {categories.map((cat, index) => (
-          <option key={index} value={cat}>
-            {cat}
+        {categories.map((cat) => (
+          <option key={cat.id} value={cat.id}>
+            {cat.name}
           </option>
         ))}
       </select>
