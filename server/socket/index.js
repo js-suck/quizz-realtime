@@ -219,6 +219,20 @@ class RealTimeQuizzSocket {
                 }
             });
 
+            socket.on("send message", ({ message }) => {
+                console.log("message", message);
+                this.io.emit("receive message", {
+                    message
+                });
+
+                // const userRoom = this.connectedUsers.get(socket.id)?.roomId;
+                // if (userRoom) {
+                //     this.io.to(userRoom).emit("receive message", {
+                //         message
+                //     // timestamp: new Date(), // Optionnel : ajouter un horodatage
+                //     });
+                // }
+            });
 
 
         });
