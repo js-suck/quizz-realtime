@@ -20,10 +20,7 @@ const Chat = () => {
   const sendMessage = () => {
     if (message) {
       console.log("message", message);
-      function sendMessage(socket, message) {
-        socket.emit("send message", message);
-        console.log("message sent");
-      }
+      socket.emit("send message", { message });
       setMessage("");
     }
   };
@@ -33,7 +30,7 @@ const Chat = () => {
       <div className="messages">
         <ul>
           {messages.map((msg, index) => (
-            <li key={index}>{msg}</li>
+            <li key={index}>{msg.message}</li>
           ))}
         </ul>
       </div>
