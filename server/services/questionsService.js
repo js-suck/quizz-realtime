@@ -72,7 +72,9 @@ class QuestionsService {
         const nbDeleted = await Question.destroy({ where: { id } });
         return nbDeleted === 1;
     }
-    async findByName(categoryName) {
+    async findByName(categoryName, { page = null, itemsPerPage = null, order = {
+        id: 'ASC'
+    } }) {
 
         const category = await Category.findOne({
             where: { name: categoryName },
@@ -85,30 +87,40 @@ class QuestionsService {
 
         const categoryId = category.id;
 
-const questions = await Question.findAll({
-    attributes: ["id", "label"],
-    include: [
-        {
-            model: Category,
-            attributes: ["name", "description", "image_url"],
-            where: {
-                id: categoryId
-            },
-            as: 'category'
-        },
-        {
-            model: Answer,
-            as: 'answers'
-        }
-    ],
-});
+        const questions = await Question.findAll({
+            attributes: ["id", "label"],
+            limit: itemsPerPage,
+            offset: (page - 1) * itemsPerPage,
+            order: Object.entries(order),
+            include: [
+                {
+                    model: Category,
+                    attributes: ["name", "description", "image_url"],
+                    where: {
+                        id: categoryId
+                    },
+                    as: 'category'
+                },
+                {
+                    model: Answer,
+                    as: 'answers'
+                },
+            ],
+        });
+
+        console.log(questions, 'questions ici')
         const transformedArray = questions.map(item => ({
             "id": item.id,
             "label": item.label,
             "name": item.category.name,
             "description": item.category.description,
             "image_url": item.category.image_url,
-            "answers": item.answers.map(answer => answer.label)
+            "answers": item.answers.map(answer => ({
+                "id": answer.id,
+                "label": answer.label,
+                "isCorrect": answer.isCorrect
+            }))
+
         }));
         return transformedArray;
     }
