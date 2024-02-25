@@ -89,9 +89,9 @@ export const QuizzGame = () => {
     const [quizzEnded, setQuizzEnded] = useState(false);
 
     useEffect(() => {
-        toast.info("Fin du Quizz " + category);
 
         const handleQuizzEnded = () => {
+            toast.info("Fin du Quizz " + category);
             setQuizzEnded(true);
         };
 
