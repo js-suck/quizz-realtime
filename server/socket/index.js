@@ -105,7 +105,8 @@ class RealTimeQuizzSocket {
                         this.io.to(room.id).emit('startQuizzGame', {
                             room,
                             category,
-                            questions
+                            questions,
+                            users: room.users
                         });
                     } else {
 
@@ -115,6 +116,14 @@ class RealTimeQuizzSocket {
                 console.log(user, 'is added to the connected sockets')
                 this.connectedUsers.set(socket.id, user);
                 console.log(this.connectedUsers)
+            });
+
+            socket.on('quizz ended', ({ roomId, category }) => {
+                const room = this.findRoomByCategory(category, roomId);
+
+                if (room) {
+                    this.io.to(roomId).emit('quizz ended', { room });
+                }
             });
 
             socket.on("fetch room", ({ room: roomId, category, user }) => {
@@ -149,8 +158,9 @@ class RealTimeQuizzSocket {
                     // send then answer to the other users but not the user who answered
                     room.users.forEach((u) => {
                         if (u.id !== user.id) {
-                            this.io.to(u.socketId).emit('update score', { user: userInRoom, room });
-                            this.io.to(u.socketId).emit('opponent answered', { user, questionId, isAnswerValid, answerId });
+                            // TODO Vivian : send the scores default scores for now
+                            this.io.to(room.id).emit('update score', { user: u, room });
+                            this.io.to(u.socketId).emit('opponent answered', { user, questionId, isAnswerValid, answerId,opponentScore: 0 });
                         }
                     });
 
@@ -165,6 +175,7 @@ class RealTimeQuizzSocket {
                         room.usersAnswered = [];
                     } else {
                         console.log("Not all users have answered", room.users);
+                        // TODO Vivian : send the scores default scores for now
                         this.io.to(room.id).emit('update score', { user: userInRoom, room });
 
 
