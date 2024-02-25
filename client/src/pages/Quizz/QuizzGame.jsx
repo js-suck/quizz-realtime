@@ -34,7 +34,7 @@ export const QuizzGame = () => {
     useEffect(() => {
 
         if (!quizzStarted) {
-            toast.info("Le quizz " + category +  "commence !");
+            toast.info("Le quizz " + category +  " commence !");
             setQuizzStarted(true);
         }
 
