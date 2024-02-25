@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import {Link, useParams} from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useQuizzContext } from "../../hooks/useQuizzContext";
-import {PlayerInfo} from "./components/PlayerInfo";
-import {QuestionStepBubbleList} from "./components/QuestionBubbleList";
-import {ChatRoom} from "../../components/ChatRoom";
+import { PlayerInfo } from "./components/PlayerInfo";
+import { QuestionStepBubbleList } from "./components/QuestionBubbleList";
+import { ChatRoom } from "../../components/ChatRoom";
+import { ToastContainer, toast } from 'react-toastify';
+import "react-toastify/dist/ReactToastify.css";
 const { socket } = require('../../socket');
 
 export const QuizzGame = () => {
@@ -17,6 +19,7 @@ export const QuizzGame = () => {
     const [timer, setTimer] = useState(10);
     const [remainingQuestions, setRemainingQuestions] = useState(restOfQuestions);
     const [isAnswerCorrect, setIsAnswerCorrect] = useState(null);
+    const [quizzStarted, setQuizzStarted] = useState(false);
 
     useEffect(() => {
         socket.on('update timer', (newTimer) => {
@@ -28,24 +31,33 @@ export const QuizzGame = () => {
         };
     }, []);
 
-useEffect(() => {
-    const handleNextQuestion = () => {
-        if (remainingQuestions.length === 0) {
-            socket.emit('quizz ended', { roomId , category});
-            return;
+    useEffect(() => {
+
+        if (!quizzStarted) {
+            toast.info("Le quizz " + category +  " commence !");
+            setQuizzStarted(true);
         }
-        setCurrentQuestion(remainingQuestions[0]);
-        setSelectedAnswerId(null);
-        socket.emit('start timer', { roomId, category });
 
-    };
+        const handleNextQuestion = () => {
+            if (remainingQuestions.length === 0) {
+                socket.emit('quizz ended', { roomId, category });
+                return;
+            }
+            setCurrentQuestion(remainingQuestions[0]);
+            setSelectedAnswerId(null);
+            socket.emit('start timer', { roomId, category });
 
-    socket.on('next question', handleNextQuestion);
+            // Lorsque vous passez à la question suivante
+            toast.info("Passage à la question suivante...");
+        };
 
-    return () => {
-        socket.off('next question', handleNextQuestion);
-    };
-}, [remainingQuestions, roomId]);
+        socket.on('next question', handleNextQuestion);
+
+        return () => {
+            socket.off('next question', handleNextQuestion);
+        };
+    }, [remainingQuestions, roomId]);
+
 
     useEffect(() => {
         const handleOpponentAnswered = ({ user, questionId, isAnswerValid, answerId }) => {
@@ -77,7 +89,9 @@ useEffect(() => {
     const [quizzEnded, setQuizzEnded] = useState(false);
 
     useEffect(() => {
+
         const handleQuizzEnded = () => {
+            toast.info("Fin du Quizz " + category);
             setQuizzEnded(true);
         };
 
@@ -93,7 +107,8 @@ useEffect(() => {
 
     return (
       <div className="flex flex-row">
-        <div className={"bg-primary p-10 rounded-3xl w-9/12"}>
+          <ToastContainer />
+          <div className={"bg-primary p-10 rounded-3xl w-9/12"}>
           <h1 className={"text-2xl p-4 text-center"}>Quizz Game {category}</h1>
           <div className={"bg-primary p-10 rounded-3xl"}>
             <div className="flex justify-between">

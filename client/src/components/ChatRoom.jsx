@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ToastContainer, toast } from 'react-toastify';
+import "react-toastify/dist/ReactToastify.css";
 import "../assets/chat.css";
 const { socket } = require("../socket");
 
@@ -11,6 +13,10 @@ export const ChatRoom = ({ user }) => {
   useEffect(() => {
     socket.on("receive message room", (message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
+
+      if (message.sender !== user.username) {
+        toast.info(`Nouveau message de ${message.sender}`);
+      }
     });
 
     return () => {
@@ -31,6 +37,8 @@ export const ChatRoom = ({ user }) => {
 
   return (
     <div className="chat">
+      <ToastContainer />
+
       <div className="messages">
         <ul>
           {messages.map((msg, index) => (
