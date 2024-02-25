@@ -24,7 +24,8 @@ export const WaitingRoom = () => {
         console.log("room found", room, questions);
         setUser((prev) => ({ ...prev, roomId: room.id, category: room.category, socketId: socket.id }));
         setOpponent(users.find((u) => u.id !== user.id));
-
+        setUser((prev) => ({ ...prev, score: 0 }));
+        setOpponent((prev) => ({ ...prev, score: 0 }));
         setQuestions(questions);
         navigateToQuizzGame(room.category, room.id);
     }
