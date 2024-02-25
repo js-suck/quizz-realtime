@@ -162,14 +162,14 @@ class RealTimeQuizzSocket {
             });
 
 
-          socket.on('answered', ({ user, questionId, isAnswerValid, answerId }) => {
+          socket.on('answered', ({ user, questionId, isAnswerValid, answerId, remainingTime }) => {
             const room = this.findRoomByCategory(user.category, user.roomId);
 
             if (room) {
                 const userInRoom = room.users.find(u => u.id === user.id);
 
                 if (userInRoom) {
-                    userInRoom.score = isAnswerValid ? userInRoom.score + 1 : userInRoom.score;
+                    userInRoom.score = isAnswerValid ? userInRoom.score + 1 * remainingTime : userInRoom.score;
 
                     if (!room.usersAnswered.includes(user.id)) {
                         room.usersAnswered.push(user.id);
@@ -177,9 +177,8 @@ class RealTimeQuizzSocket {
 
                     // send then answer to the other users but not the user who answered
                     room.users.forEach((u) => {
+                        this.io.to(room.id).emit('update scores', { user: u, room });
                         if (u.id !== user.id) {
-                            // TODO Vivian : send the scores default scores for now
-                            this.io.to(room.id).emit('update score', { user: u, room });
                             this.io.to(u.socketId).emit('opponent answered', { user, questionId, isAnswerValid, answerId,opponentScore: 0 });
                         }
                     });
@@ -190,21 +189,56 @@ class RealTimeQuizzSocket {
                         // wait 5 seconds before sending the next question
                         setTimeout(() => {
                             this.io.to(room.id).emit('next question', room);
+                            this.io.to(room.id).emit('reset timer', room);
                         }
                         , 5000);
                         room.usersAnswered = [];
                     } else {
                         console.log("Not all users have answered", room.users);
-                        // TODO Vivian : send the scores default scores for now
-                        this.io.to(room.id).emit('update score', { user: userInRoom, room });
-
-
+                        this.io.to(room.id).emit('update scores', { user: userInRoom, room });
                     }
                 }
             }
         });
 
-              socket.on('quizz ended', ({ roomId, category  }) => {
+        socket.on("update time proposal", ({roomId, category, newTime }) => {
+            // const room = this.findRoomByCategory(category, roomId);
+            // console.log('user', user, 'newTime', newTime)
+            // if (room) {
+            //     room.users.forEach((u) => {
+            //         if (u.id === user.id) {
+            //             room.timeProposal = { newTime, user };
+
+            //                 // console.log("Emitting time proposal to opponent");
+            //                 // this.io.to(opponentSocketId).emit('time proposal', { newTime });
+            //         }
+            //     });
+            // }
+        });
+
+        socket.on("accept time proposal", ({ roomId, category }) => {
+            const room = this.findRoomByCategory(category, roomId);
+            if (room) {
+                // Mettre à jour le temps dans la salle
+                room.timeRemaining = room.timeProposal.newTime;
+                delete room.timeProposal;
+                this.io.to(roomId).emit('time updated', { roomId, newTime: room.timeRemaining });
+            }
+        });
+        
+
+            socket.on('end timer', ({ roomId, category }) => {
+                const room = this.findRoomByCategory(category, roomId);
+                if (room) {
+                    console.log("Timer ended");
+                        setTimeout(() => {
+                        this.io.to(room.id).emit('next question', room);
+                        this.io.to(room.id).emit('reset timer', room);
+                    }, 5000);
+                }
+            });
+
+            socket.on('quizz ended', ({ roomId, category }) => {
                 const room = this.findRoomByCategory(category, roomId);
                 if (room) {
                     this.io.to(roomId).emit('quizz ended', { room });
@@ -250,12 +284,17 @@ class RealTimeQuizzSocket {
                 }
             });
 
-
-
+            socket.on("update time", ({ roomId, category, newTime }) => {
+                const roomToUpdate = this.findRoomByCategory(category, roomId);
+                if (roomToUpdate) {
+                    roomToUpdate.timeRemaining = newTime;
+                    this.io.to(roomId).emit('time updated', { roomId, newTime });
+                } else {
+                    console.log("Room not found");
+                }
+            });
         });
     }
-
-    // ...
 }
 
 module.exports = RealTimeQuizzSocket;
