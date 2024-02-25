@@ -5,6 +5,7 @@ import {ChooseCategory} from "./pages/Quizz/ChooseCategory";
 import {WaitingRoom} from "./pages/Quizz/WaitingRoom";
 import {QuizzGame} from "./pages/Quizz/QuizzGame";
 import {QuizProvider} from "./hooks/useQuizzContext";
+import {QuestionForm} from "./pages/Quizz/QuestionForm";
 import "./index.css";
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
           <Route path="/chat" element={<Chat />} />
           <Route path="/waiting-room/:category" element={<WaitingRoom />} />
           <Route path="/quizz-game/:category/:roomId" element={<QuizzGame />} />
+          <Route path="/question-form" element={<QuestionForm />} />
         </Routes>
         </QuizProvider>
 
