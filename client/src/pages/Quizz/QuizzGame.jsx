@@ -226,14 +226,7 @@ export const QuizzGame = () => {
               {selectedAnswerId != null && opponentAnswered && (
                 <p>loading...</p>
               )}
-            </div>
-          )}
-        </div>
-
-        <div className="w-3/12">
-          <ChatRoom roomId={roomId} user={user} />
-        </div>
-            <input
+              <input
                 type="text"
                 value={newTime}
                 onChange={(e) => setNewTime(e.target.value)}
@@ -245,6 +238,14 @@ export const QuizzGame = () => {
                     <button onClick={handleAcceptTimeProposal}>Accepter</button>
                 </div>
             )}
+            </div>
+            
+          )}
+        </div>
+
+        <div className="w-3/12">
+          <ChatRoom roomId={roomId} user={user} />
+        </div>
 
       </div>
     );
