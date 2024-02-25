@@ -200,8 +200,8 @@ class RealTimeQuizzSocket {
             }
         });
 
-              socket.on('quizz ended', ({ roomId }) => {
-             const room = this.rooms.find(r => r.id === roomId);
+              socket.on('quizz ended', ({ roomId, category  }) => {
+                const room = this.findRoomByCategory(category, roomId);
                 if (room) {
                     this.io.to(roomId).emit('quizz ended', { room });
                 }

@@ -2,6 +2,7 @@ import {useNavigate, useParams} from "react-router-dom";
 import {socket} from "../../socket";
 import {useQuizzContext} from "../../hooks/useQuizzContext";
 import React from "react";
+import {ThreeCircles} from "react-loader-spinner";
 
 export const WaitingRoom = () => {
     const { category } = useParams();
@@ -30,9 +31,17 @@ export const WaitingRoom = () => {
     );
 
     return (
-        <div>t
-            <h1>Salle d'attente {category}</h1>
-            <img className={'rounded-3xl'} src={`/images/${category}.jpeg`} />
+        <div className={'flex flex-col justify-center items-center '}>
+            <h1 className="text-center w-full mb-10 text-2xl font-bold py-2 px-4 bg-primary text-white rounded mb-2">Waiting for
+                players in :  {category}</h1>
+
+            <ThreeCircles
+                type="Puff"
+                color="white"
+                height={100}
+                width={100}
+                timeout={3000} //3 secs
+            />
 
         </div>
     );
