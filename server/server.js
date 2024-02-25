@@ -36,7 +36,7 @@ pgClient.connect()
 
 
 
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3001;
 
 app.use('/api/category',categoryRouter);
 app.use('/api/questions',questionRouter);
