@@ -43,7 +43,6 @@ export const WaitingRoom = () => {
                 timeout={3000} //3 secs
             />
 
-
         </div>
     );
 }

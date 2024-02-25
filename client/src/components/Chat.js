@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../assets/chat.css";
-import {socket} from "../socket";
+const { socket } = require("../socket");
 
 
 const Chat = () => {
@@ -8,18 +8,19 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    socket.on("receiveMessage", (message) => {
+    socket.on("receive message", (message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
     });
 
     return () => {
-      socket.off("receiveMessage");
+      socket.off("receive message");
     };
   }, []);
 
   const sendMessage = () => {
     if (message) {
-      socket.emit("sendMessage", message);
+      console.log("message", message);
+      socket.emit("send message", { message });
       setMessage("");
     }
   };
@@ -29,7 +30,7 @@ const Chat = () => {
       <div className="messages">
         <ul>
           {messages.map((msg, index) => (
-            <li key={index}>{msg}</li>
+            <li key={index}>{msg.message}</li>
           ))}
         </ul>
       </div>
