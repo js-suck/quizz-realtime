@@ -11,15 +11,13 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <header className="App-header">
-          <h2>RealTime Quizz</h2>
-          <Link to={"/waiting-room/history"}>Test Play history room</Link>
-        </header>
+
         <QuizProvider>
 
           <Routes>
           <Route path="/choose-category" element={<ChooseCategory />} />
-          <Route path="/chat" element={<Chat />} />
+            <Route path="/" element={<ChooseCategory />} />
+            <Route path="/chat" element={<Chat />} />
           <Route path="/waiting-room/:category" element={<WaitingRoom />} />
           <Route path="/quizz-game/:category/:roomId" element={<QuizzGame />} />
         </Routes>
