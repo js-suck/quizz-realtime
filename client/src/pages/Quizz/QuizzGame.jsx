@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import {Link, useParams} from 'react-router-dom';
 import { useQuizzContext } from "../../hooks/useQuizzContext";
+import {PlayerInfo} from "./components/PlayerInfo";
+import {QuestionStepBubbleList} from "./components/QuestionBubbleList";
 const { socket } = require('../../socket');
 
 export const QuizzGame = () => {
-    const { questions, setQuestions, user } = useQuizzContext();
+    const { questions, setQuestions, user, opponent } = useQuizzContext();
     const [firstQuestion, ...restOfQuestions] = questions;
     const { roomId, category } = useParams();
     const [opponentAnswered, setOpponentAnswered] = useState(false);
-    const [userAnswered, setUserAnswered] = useState(false);
+    const [selectedAnswerId, setSelectedAnswerId] = useState(null);
 
     const [currentQuestion, setCurrentQuestion] = useState(firstQuestion);
     const [timer, setTimer] = useState(10);
@@ -25,23 +27,24 @@ export const QuizzGame = () => {
         };
     }, []);
 
-    useEffect(() => {
-        const handleNextQuestion = () => {
-            setCurrentQuestion(remainingQuestions[0]);
-            setUserAnswered(false);
-            if (remainingQuestions.length === 1) {
-                socket.emit('quizz ended', { roomId });
-            } else {
-                socket.emit('start timer', { roomId });
-            }
-        };
+useEffect(() => {
+    const handleNextQuestion = () => {
+        if (remainingQuestions.length === 0) {
+            socket.emit('quizz ended', { roomId , category});
+            return;
+        }
+        setCurrentQuestion(remainingQuestions[0]);
+        setSelectedAnswerId(null);
+        socket.emit('start timer', { roomId, category });
 
-        socket.on('next question', handleNextQuestion);
+    };
 
-        return () => {
-            socket.off('next question', handleNextQuestion);
-        };
-    }, [remainingQuestions, roomId]);
+    socket.on('next question', handleNextQuestion);
+
+    return () => {
+        socket.off('next question', handleNextQuestion);
+    };
+}, [remainingQuestions, roomId]);
 
     useEffect(() => {
         const handleOpponentAnswered = ({ user, questionId, isAnswerValid, answerId }) => {
@@ -67,32 +70,66 @@ export const QuizzGame = () => {
         const isCorrect = answer.isCorrect
         setIsAnswerCorrect(isCorrect);
         socket.emit('answered', {user, questionId: currentQuestion.id, isAnswerValid: isCorrect , answerId: answer.id});
-        setUserAnswered(true);
+        setSelectedAnswerId(answer.id);
     };
 
+    const [quizzEnded, setQuizzEnded] = useState(false);
+
+    useEffect(() => {
+        const handleQuizzEnded = () => {
+            setQuizzEnded(true);
+        };
+
+        socket.on('quizz ended', handleQuizzEnded);
+
+        return () => {
+            socket.off('quizz ended', handleQuizzEnded);
+        };
+    }, []);
+
+    const player1 = user;
+    const player2 = opponent;
+
     return (
-        <div className={'bg-primary'}>
-            <h1>Quizz Game {category}</h1>
-            {currentQuestion && (
-                <div>
-                    <h2>{currentQuestion.label}</h2>
-                    <img src={require(`../../assets/categories/${currentQuestion.image_url}`).default} alt={currentQuestion.label} />
+        <div className={'bg-primary p-10 rounded-3xl'}>
+            <h1 className={'text-2xl p-4 text-center'}>Quizz Game {category}</h1>
+            <div className={'bg-primary p-10 rounded-3xl'}>
+                <div className="flex justify-between">
+                    <PlayerInfo {...player1} />
+                    <PlayerInfo {...player2} />
+                </div>
+            </div>
+          <QuestionStepBubbleList questions={questions} currentQuestion={currentQuestion} />
+            {quizzEnded ?
+                (<QuizzEnd scores={[player1, player2]} />)
+                :  (
+                <div className={'flex flex-col w-3/4 justify-center items-center mx-auto'}>
+                    <img className={'rounded-3xl'} src={`/images/${currentQuestion.image_url}`} alt={currentQuestion.label}/>
+                    <h2 className={'text-2xl m-4 font-bold text-center'}>{currentQuestion.label}</h2>
                     <div>
                         {currentQuestion.answers.map((answer, index) => (
-                            <button key={index} onClick={() => handleAnswer(answer)}>
-                                {answer.label}
-                                {userAnswered && opponentAnswered === answer.id && <p>Opponent answered</p>}
+                            <button
+                                disabled={selectedAnswerId != null || timer === 0}
+                                className={`p-4 m-2 h-20 rounded-xl ${selectedAnswerId != null && selectedAnswerId === answer.id ? 'bg-slate-300' : 'bg-slate-500'}`}
+                                key={index}
+                                onClick={() => handleAnswer(answer)}
+                            >
+                                <div className="flex items-center">
+                                    {answer.label}
+                                    {selectedAnswerId != null && opponentAnswered === answer.id &&
+                                        <img src={`/images/${opponent.profilePicturePath}`} alt={opponent.username}
+                                             className={'w-8 h-8 rounded-full ml-2'}/>}
+                                    {selectedAnswerId != null && selectedAnswerId === answer.id && (
+                                        <span className={'ml-4'}>{answer.isCorrect ? '✅' : '❌'}</span>
+                                    )}
+                                </div>
+
                             </button>
                         ))}
                     </div>
                     <p>{timer}</p>
-                    {isAnswerCorrect !== null && (
-                        <div>
-                        {isAnswerCorrect ? <p>Correct</p> : <p>Incorrect</p>}
-                        </div>
-                    )}
 
-                    {userAnswered && opponentAnswered && (
+                    {selectedAnswerId != null && opponentAnswered && (
 
                         <p>loading...</p>)
                     }
@@ -101,3 +138,24 @@ export const QuizzGame = () => {
         </div>
     );
 };
+
+
+const QuizzEnd = ({ scores }) => {
+    return (
+        <div style={{ backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '10px' }}>
+            <h1 style={{ textAlign: 'center', color: '#6c757d' }}>Quizz Ended</h1>
+            <ul style={{ listStyleType: 'none', padding: '0' }}>
+                {scores.map((score, index) => (
+                    <li key={index} style={{ margin: '10px 0', backgroundColor: '#a3cbf4', padding: '10px', borderRadius: '5px' }}>
+                        <span style={{ fontWeight: 'bold', marginRight: '10px' }}>{score.username}</span> : <span>{score.score}</span>
+                    </li>
+                ))}
+            </ul>
+            <Link to={'/'}><button className={
+                'bg-slate-500 hover:bg-slate-400 text-white font-bold py-2 px-4 rounded  w-full'
+
+            }>Go back to Quizz selection</button></Link>
+
+        </div>
+    );
+}

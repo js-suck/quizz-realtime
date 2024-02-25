@@ -10,8 +10,11 @@ export const useQuizz = () => {
     const [questions, setQuestions] = useState([]);
     const [user, setUser] = useState({
         id: 1 + Math.random(),
-       username: 'user',
+       username: 'user' + Math.random(),
+        profilePicturePath: 'defaultUser.png',
+        score: 0,
     });
+    const [opponent, setOpponent] = useState({});
 
     const getQuizz = useCallback(
         async (category) => {
@@ -40,7 +43,9 @@ export const useQuizz = () => {
         questions,
         setQuestions,
         user,
-        setUser
+        setUser,
+        opponent,
+        setOpponent,
     };
 
 }
