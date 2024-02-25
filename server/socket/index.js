@@ -73,6 +73,10 @@ class RealTimeQuizzSocket {
               // }
             });
 
+              socket.on("send message room", ({ roomId, message }) => {
+                this.io.to(roomId).emit("receive message room", message);
+              });
+
             socket.on('search a room', async ({ user, category }) => {
                 console.log("search a room", user, category)
                 let room= null;

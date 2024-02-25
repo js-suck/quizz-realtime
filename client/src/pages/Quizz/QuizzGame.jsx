@@ -3,6 +3,7 @@ import {Link, useParams} from 'react-router-dom';
 import { useQuizzContext } from "../../hooks/useQuizzContext";
 import {PlayerInfo} from "./components/PlayerInfo";
 import {QuestionStepBubbleList} from "./components/QuestionBubbleList";
+import {ChatRoom} from "../../components/ChatRoom";
 const { socket } = require('../../socket');
 
 export const QuizzGame = () => {
@@ -91,51 +92,75 @@ useEffect(() => {
     const player2 = opponent;
 
     return (
-        <div className={'bg-primary p-10 rounded-3xl'}>
-            <h1 className={'text-2xl p-4 text-center'}>Quizz Game {category}</h1>
-            <div className={'bg-primary p-10 rounded-3xl'}>
-                <div className="flex justify-between">
-                    <PlayerInfo {...player1} />
-                    <PlayerInfo {...player2} />
-                </div>
-            </div>
-          <QuestionStepBubbleList questions={questions} currentQuestion={currentQuestion} />
-            {quizzEnded ?
-                (<QuizzEnd scores={[player1, player2]} />)
-                :  (
-                <div className={'flex flex-col w-3/4 justify-center items-center mx-auto'}>
-                    <img className={'rounded-3xl'} src={`/images/${currentQuestion.image_url}`} alt={currentQuestion.label}/>
-                    <h2 className={'text-2xl m-4 font-bold text-center'}>{currentQuestion.label}</h2>
-                    <div>
-                        {currentQuestion.answers.map((answer, index) => (
-                            <button
-                                disabled={selectedAnswerId != null || timer === 0}
-                                className={`p-4 m-2 h-20 rounded-xl ${selectedAnswerId != null && selectedAnswerId === answer.id ? 'bg-slate-300' : 'bg-slate-500'}`}
-                                key={index}
-                                onClick={() => handleAnswer(answer)}
-                            >
-                                <div className="flex items-center">
-                                    {answer.label}
-                                    {selectedAnswerId != null && opponentAnswered === answer.id &&
-                                        <img src={`/images/${opponent.profilePicturePath}`} alt={opponent.username}
-                                             className={'w-8 h-8 rounded-full ml-2'}/>}
-                                    {selectedAnswerId != null && selectedAnswerId === answer.id && (
-                                        <span className={'ml-4'}>{answer.isCorrect ? '✅' : '❌'}</span>
-                                    )}
-                                </div>
-
-                            </button>
-                        ))}
-                    </div>
-                    <p>{timer}</p>
-
-                    {selectedAnswerId != null && opponentAnswered && (
-
-                        <p>loading...</p>)
-                    }
-                </div>
-            )}
+      <div className={"bg-primary p-10 rounded-3xl"}>
+        <h1 className={"text-2xl p-4 text-center"}>Quizz Game {category}</h1>
+        <div className={"bg-primary p-10 rounded-3xl"}>
+          <div className="flex justify-between">
+            <PlayerInfo {...player1} />
+            <PlayerInfo {...player2} />
+          </div>
         </div>
+        <QuestionStepBubbleList
+          questions={questions}
+          currentQuestion={currentQuestion}
+        />
+        {quizzEnded ? (
+          <QuizzEnd scores={[player1, player2]} />
+        ) : (
+          <div
+            className={
+              "flex flex-col w-3/4 justify-center items-center mx-auto"
+            }
+          >
+            <img
+              className={"rounded-3xl"}
+              src={`/images/${currentQuestion.image_url}`}
+              alt={currentQuestion.label}
+            />
+            <h2 className={"text-2xl m-4 font-bold text-center"}>
+              {currentQuestion.label}
+            </h2>
+            <div>
+              {currentQuestion.answers.map((answer, index) => (
+                <button
+                  disabled={selectedAnswerId != null || timer === 0}
+                  className={`p-4 m-2 h-20 rounded-xl ${
+                    selectedAnswerId != null && selectedAnswerId === answer.id
+                      ? "bg-slate-300"
+                      : "bg-slate-500"
+                  }`}
+                  key={index}
+                  onClick={() => handleAnswer(answer)}
+                >
+                  <div className="flex items-center">
+                    {answer.label}
+                    {selectedAnswerId != null &&
+                      opponentAnswered === answer.id && (
+                        <img
+                          src={`/images/${opponent.profilePicturePath}`}
+                          alt={opponent.username}
+                          className={"w-8 h-8 rounded-full ml-2"}
+                        />
+                      )}
+                    {selectedAnswerId != null &&
+                      selectedAnswerId === answer.id && (
+                        <span className={"ml-4"}>
+                          {answer.isCorrect ? "✅" : "❌"}
+                        </span>
+                      )}
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div>
+              <ChatRoom roomId={roomId} />
+            </div>
+            <p>{timer}</p>
+
+            {selectedAnswerId != null && opponentAnswered && <p>loading...</p>}
+          </div>
+        )}
+      </div>
     );
 };
 
