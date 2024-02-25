@@ -12,7 +12,7 @@
 }
 
 .chat .messages{
-    max-height: 10rem;
+    /* max-height: 10rem; */
     flex: 1;
     padding: 10px;
     overflow-y: auto;
