@@ -15,7 +15,6 @@ export const ChatRoom = ({ user }) => {
       setMessages((prevMessages) => [...prevMessages, message]);
 
       if (message.sender !== user.username) {
-        toast.info(`Nouveau message de ${message.sender}`);
       }
     });
 
@@ -37,8 +36,6 @@ export const ChatRoom = ({ user }) => {
 
   return (
     <div className="chat">
-      <ToastContainer />
-
       <div className="messages">
         <ul>
           {messages.map((msg, index) => (
