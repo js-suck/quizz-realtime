@@ -108,6 +108,7 @@ export const QuizzGame = () => {
     useEffect(() => {
 
         const handleQuizzEnded = () => {
+            if (quizzEnded) return;
             toast.info("Fin du Quizz " + category);
             setQuizzEnded(true);
         };
@@ -132,12 +133,14 @@ export const QuizzGame = () => {
 
     const handleUpdateTime = () => {
         socket.emit("update time proposal", { roomId, category, newTime, user });
+        toast.info("The new time proposed is " + newTime + " seconds");
         setNewTime('');
     };
 
     useEffect(() => {
         socket.on('time proposal', ({ newTime }) => {
             setProposedTime(newTime);
+            toast.info("The new time proposed by the opponent is " + newTime + " seconds");
         });
     
         return () => {
@@ -147,6 +150,7 @@ export const QuizzGame = () => {
 
     const handleAcceptTimeProposal = () => {
         socket.emit("accept time proposal", { roomId, category, proposedTime });
+        toast.info("The new time has been accepted. The new time is " + proposedTime + " seconds");
     };
 
     const handleRefusedTimeProposal = () => {
