@@ -20,23 +20,20 @@ export const QuizzGame = () => {
     const [remainingQuestions, setRemainingQuestions] = useState(restOfQuestions);
     const [isAnswerCorrect, setIsAnswerCorrect] = useState(null);
     const [remainingTime, setRemainingTime] = useState(timer);
-    const [newTime, setNewTime] = useState(10);
+    const [newTime, setNewTime] = useState(null);
     const [proposedTime, setProposedTime] = useState(null);
     const [quizzStarted, setQuizzStarted] = useState(false);
+    const [questionSkipped, setQuestionSkipped] = useState(false);
 
-    useEffect(() => {
-        socket.on('reset timer', () => {
-            setRemainingTime(timer);
-        });
+    socket.on('time updated', (timeNew) => {
+        setTimer(timeNew.newTime);
+        setProposedTime(null);
+    });
 
-        socket.on('update timer', (newTimer) => {
-            setTimer(newTimer);
-        });
-
-        return () => {
-            socket.off('update timer');
-        };
-    }, []);
+    socket.on('reset timer', () => {
+        setRemainingTime(timer);
+        setQuestionSkipped(false);
+    });
 
     useEffect(() => {
 
@@ -66,20 +63,6 @@ export const QuizzGame = () => {
     }, [remainingQuestions, roomId]);
 
     useEffect(() => {
-        if (remainingTime > 0) {
-            const intervalId = setInterval(() => {
-                setRemainingTime(prevTime => prevTime - 1);
-            }, 1000);
-
-            return () => clearInterval(intervalId);
-        }
-        if (remainingTime === 0) {
-            console.log("Timer ended");
-            socket.emit('end timer', { roomId, category });
-        }
-    }, [remainingTime]);
-
-    useEffect(() => {
         const handleOpponentAnswered = ({ user, questionId, isAnswerValid, answerId }) => {
             if (questionId === currentQuestion.id) {
                 setOpponentAnswered(answerId);
@@ -102,9 +85,23 @@ export const QuizzGame = () => {
         socket.emit('answer', { roomId, answer });
         const isCorrect = answer.isCorrect
         setIsAnswerCorrect(isCorrect);
-        socket.emit('answered', {user, questionId: currentQuestion.id, isAnswerValid: isCorrect , answerId: answer.id, remainingTime});
+        socket.emit('answered', {user, questionId: currentQuestion.id, isAnswerValid: isCorrect , answerId: answer.id, remainingTime, timer});
         setSelectedAnswerId(answer.id);
     };
+
+    useEffect(() => {
+        if (remainingTime > 0) {
+            const intervalId = setInterval(() => {
+                setRemainingTime(prevTime => prevTime - 1);
+            }, 1000);
+
+            return () => clearInterval(intervalId);
+        }
+        if (remainingTime === 0 && !questionSkipped) {
+            socket.emit('answered', {user, questionId: currentQuestion.id, isAnswerValid: false , answerId: 0, remainingTime});
+            setQuestionSkipped(true);
+        }
+    }, [remainingTime, questionSkipped]);
 
     const [quizzEnded, setQuizzEnded] = useState(false);
 
@@ -134,14 +131,12 @@ export const QuizzGame = () => {
     });
 
     const handleUpdateTime = () => {
-        console.log('newTime', newTime)
-        socket.emit("update time proposal", { roomId, category, newTime });
+        socket.emit("update time proposal", { roomId, category, newTime, user });
         setNewTime('');
     };
 
     useEffect(() => {
         socket.on('time proposal', ({ newTime }) => {
-            console.log('Time proposal', newTime);
             setProposedTime(newTime);
         });
     
@@ -151,8 +146,12 @@ export const QuizzGame = () => {
     }, []);
 
     const handleAcceptTimeProposal = () => {
-        socket.emit("accept time proposal", { roomId, category });
+        socket.emit("accept time proposal", { roomId, category, proposedTime });
     };
+
+    const handleRefusedTimeProposal = () => {
+        setProposedTime(null);
+    }
 
     return (
       <div className="flex flex-row">
@@ -230,12 +229,26 @@ export const QuizzGame = () => {
                 type="text"
                 value={newTime}
                 onChange={(e) => setNewTime(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button onClick={handleUpdateTime}>Modifier le temps</button>
+            <button
+                onClick={handleUpdateTime}
+                className="w-full p-2 bg-green-500 text-white rounded-md hover:bg-green-700 transition duration-300">
+                Update Time
+            </button>
             {proposedTime != null && (
                 <div>
-                    <p>Le temps proposé par l'adversaire est {proposedTime}</p>
-                    <button onClick={handleAcceptTimeProposal}>Accepter</button>
+                    <p>The proposed time by the opponent is {proposedTime}</p>
+                    <button
+                        onClick={handleAcceptTimeProposal}
+                        className="w-full p-2 bg-green-500 text-white rounded-md hover:bg-green-700 transition duration-300"
+                        >Accept
+                    </button>
+                    <button
+                        onClick={handleRefusedTimeProposal}
+                        className="w-full p-2 bg-red-500 text-white rounded-md hover:bg-red-700 transition duration-300"
+                        >Refuse
+                    </button>
                 </div>
             )}
             </div>

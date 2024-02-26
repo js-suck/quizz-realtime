@@ -162,14 +162,19 @@ class RealTimeQuizzSocket {
             });
 
 
-          socket.on('answered', ({ user, questionId, isAnswerValid, answerId, remainingTime }) => {
+          socket.on('answered', ({ user, questionId, isAnswerValid, answerId, remainingTime, timer }) => {
             const room = this.findRoomByCategory(user.category, user.roomId);
 
             if (room) {
                 const userInRoom = room.users.find(u => u.id === user.id);
 
                 if (userInRoom) {
-                    userInRoom.score = isAnswerValid ? userInRoom.score + 1 * remainingTime : userInRoom.score;
+                    const timeRatio = remainingTime / timer;
+                    const MAX_SCORE = 100;
+            
+                    const score = isAnswerValid ? Math.floor(MAX_SCORE * timeRatio) : 0;
+
+                    userInRoom.score = userInRoom.score + score;
 
                     if (!room.usersAnswered.includes(user.id)) {
                         room.usersAnswered.push(user.id);
@@ -201,40 +206,37 @@ class RealTimeQuizzSocket {
             }
         });
 
-        socket.on("update time proposal", ({roomId, category, newTime }) => {
-            // const room = this.findRoomByCategory(category, roomId);
-            // console.log('user', user, 'newTime', newTime)
-            // if (room) {
-            //     room.users.forEach((u) => {
-            //         if (u.id === user.id) {
-            //             room.timeProposal = { newTime, user };
+        socket.on("update time proposal", ({roomId, category, newTime, user }) => {
+            const room = this.findRoomByCategory(category, roomId);
+            console.log('user', user, 'newTime', newTime)
+            if (room) {
+                const opponent = room.users.find(u => u.id !== user.id);
 
-            //                 // console.log("Emitting time proposal to opponent");
-            //                 // this.io.to(opponentSocketId).emit('time proposal', { newTime });
-            //         }
-            //     });
-            // }
+                room.timeProposal = { newTime, user };
+
+                console.log("Emitting time proposal to opponent");
+                this.io.to(opponent.socketId).emit('time proposal', { newTime });
+            }
         });
 
-        socket.on("accept time proposal", ({ roomId, category }) => {
+        socket.on("accept time proposal", ({ roomId, category, proposedTime }) => {
             const room = this.findRoomByCategory(category, roomId);
             if (room) {
-                // Mettre à jour le temps dans la salle
-                room.timeRemaining = room.timeProposal.newTime;
-                delete room.timeProposal;
-                this.io.to(roomId).emit('time updated', { roomId, newTime: room.timeRemaining });
+                this.io.to(roomId).emit('time updated', { newTime: proposedTime });
             }
         });
         
-
             socket.on('end timer', ({ roomId, category }) => {
                 const room = this.findRoomByCategory(category, roomId);
                 if (room) {
-                    console.log("Timer ended");
-                        setTimeout(() => {
-                        this.io.to(room.id).emit('next question', room);
-                        this.io.to(room.id).emit('reset timer', room);
-                    }, 5000);
+                    if (room.usersAnswered.length !== room.users.length) {
+                        console.log("Timer ended");
+                            setTimeout(() => {
+                            this.io.to(room.id).emit('next question', room);
+                            this.io.to(room.id).emit('reset timer', room);
+                        }, 5000);
+                        room.questionSkipped = true;
+                    }
                 }
             });
 
